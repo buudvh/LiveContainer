@@ -10,6 +10,15 @@ on:
         type: boolean
         required: false
 
+# VieStore: Telegram group notification (.github/notify_telegram.py); skipped when the secrets are unset.
+env:
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  TELEGRAM_THREAD_ID: ${{ vars.TELEGRAM_THREAD_ID }}
+  NOTIFY_TITLE: LiveContainer+VieStore
+  NOTIFY_ASSET_NAME: LiveContainer+SideStore.ipa
+  NOTIFY_RELEASE_TAG: nightly
+
 jobs:
   build:
     name: Build using xcodebuild command
@@ -82,6 +91,11 @@ jobs:
           name: ${{ env.scheme }}+SideStore.ipa
           path: ${{ env.scheme }}+SideStore.ipa
 
+      - name: Notify Telegram (build failed)
+        if: failure() && env.TELEGRAM_BOT_TOKEN != ''
+        continue-on-error: true
+        run: python3 .github/notify_telegram.py failure
+
   release__nightly:
     name: Nightly Release
     permissions:
@@ -142,3 +156,14 @@ jobs:
             .github/apps_ss_lc.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # VieStore: send the LiveContainer+VieStore IPA to the Telegram group.
+      - name: Notify Telegram (success)
+        if: success() && env.TELEGRAM_BOT_TOKEN != ''
+        continue-on-error: true
+        run: python3 .github/notify_telegram.py success "${{ needs.build.outputs.artifact2 }}"
+
+      - name: Notify Telegram (release failed)
+        if: failure() && env.TELEGRAM_BOT_TOKEN != ''
+        continue-on-error: true
+        run: python3 .github/notify_telegram.py failure
