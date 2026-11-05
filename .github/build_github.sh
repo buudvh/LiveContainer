@@ -41,7 +41,8 @@ mv ./tmp/SideStoreSupport.framework Payload/LiveContainer.app/Frameworks
 
 # download SideStore
 cd tmp
-wget https://github.com/LiveContainer/SideStore/releases/download/nightly/SideStore.ipa
+# VieStore: embed VieStore (fork of SideStore) instead of LiveContainer/SideStore
+wget https://github.com/buudvh/VieStore/releases/download/nightly/SideStore.ipa
 unzip SideStore.ipa
 cd ..
 
